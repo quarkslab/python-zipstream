@@ -1,13 +1,18 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from setuptools import setup, find_packages
+import zipstream
 
-from distutils.core import setup
 
 setup(
     name='zipstream',
-    version='1.0.1',
-    description='SpiderOak ZipStream Module',
-    author='SpiderOak Team',
-    author_email='code@spideroak.com',
-    url='http://www.spideroak.com',
-    py_modules=['zipstream'],
+    version=zipstream.__version__,
+    description='Zipfile generator',
+    author='Allan Lei',
+    author_email='allanlei@helveticode.com',
+    url='https://github.com/allanlei/python-zipstream',
+    packages=find_packages(),
+    keywords='zip streaming',
+
+    test_suite='nose.collector',
+    tests_require = ['nose'],
 )
