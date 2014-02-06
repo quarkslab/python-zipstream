@@ -3,7 +3,7 @@
 """
 pythoncompat
 
-Copied from 
+Copied from requests
 """
 
 import sys
