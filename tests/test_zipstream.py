@@ -50,10 +50,33 @@ class ZipStreamTestCase(unittest.TestCase):
         f.close()
 
         z2 = zipfile.ZipFile(f.name, 'r')
-        z2.testzip()
+        self.assertFalse(z2.testzip())
 
         os.remove(f.name)
 
+    def test_write_iterable(self):
+        z = zipstream.ZipFile(mode='w')
+        def string_generator():
+            for _ in range(10):
+                yield b'zipstream\x01\n'
+        data = [string_generator(), string_generator()]
+        for i, d in enumerate(data):
+            z.write_iter(iterable=d, arcname='data_{0}'.format(i))
+
+        f = tempfile.NamedTemporaryFile(suffix='zip', delete=False)
+        for chunk in z:
+            f.write(chunk)
+        f.close()
+
+        z2 = zipfile.ZipFile(f.name, 'r')
+        self.assertFalse(z2.testzip())
+
+        os.remove(f.name)
+
+
+    def test_write_iterable_no_archive(self):
+        z = zipstream.ZipFile(mode='w')
+        self.assertRaises(TypeError, z.write_iter, iterable=range(10))
 
 if __name__ == '__main__':
     unittest.main()
