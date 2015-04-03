@@ -3,8 +3,6 @@ import zipstream
 import zipfile
 
 
-f = open('test.zip', 'wb')
-
 with zipstream.ZipFile(mode='w', compression=zipstream.ZIP_DEFLATED) as z:
     z.write('LICENSE')
     z.write('LICENSE', arcname='stuff/LICENSE')
@@ -17,8 +15,6 @@ with zipstream.ZipFile(mode='w', compression=zipstream.ZIP_DEFLATED) as z:
     with open('test.zip', 'wb') as f:
         for chunk in z:
             f.write(chunk)
-
-f.close()
 
 
 with zipfile.ZipFile('test.zip') as z:
