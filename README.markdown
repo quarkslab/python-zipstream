@@ -15,7 +15,7 @@ archive containing files from 'path' to a normal file:
 
 ```python
 zf = open('zipfile.zip', 'wb')
-for data in ZipStream(path):
+for data in ZipFile(path):
     zf.write(data)
 zf.close()
 ```
@@ -31,10 +31,10 @@ def GET(self):
     web.header('Content-type' , 'application/zip')
     web.header('Content-Disposition', 'attachment; filename="%s"' % (
         zip_filename,))
-    return ZipStream(path)
+    return ZipFile(path)
 ```
 
-If the zlib module is available, ZipStream can generate compressed zip
+If the zlib module is available, ZipFile can generate compressed zip
 archives.
 
 ## Requirements
@@ -51,7 +51,7 @@ from flask import Response
 @app.route('/package.zip', methods=['GET'], endpoint='zipball')
 def zipball():
     def generator():
-    	z = ZipStream(mode='w', compression=ZIP_DEFLATED)
+    	z = ZipFile(mode='w', compression=ZIP_DEFLATED)
 
     	z.write('/path/to/file')
 
@@ -66,7 +66,7 @@ def zipball():
 
 @app.route('/package.zip', methods=['GET'], endpoint='zipball')
 def zipball():
-	z = ZipStream(mode='w', compression=ZIP_DEFLATED)
+	z = ZipFile(mode='w', compression=ZIP_DEFLATED)
 	z.write('/path/to/file')
 
     response = Response(z, mimetype='application/zip')
@@ -80,7 +80,7 @@ def zipball():
 from django.http import StreamingHttpResponse
 
 def zipball(request):
-	z = ZipStream(mode='w', compression=ZIP_DEFLATED)
+	z = ZipFile(mode='w', compression=ZIP_DEFLATED)
 	z.write('/path/to/file')
 
     response = StreamingHttpResponse(z, mimetype='application/zip')
@@ -97,5 +97,5 @@ def GET(self):
     web.header('Content-type' , 'application/zip')
     web.header('Content-Disposition', 'attachment; filename="%s"' % (
         zip_filename,))
-    return ZipStream(path)
+    return ZipFile(path)
 ```
