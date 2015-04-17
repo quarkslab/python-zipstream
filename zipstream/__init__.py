@@ -18,24 +18,23 @@ import zipfile
 from .compat import (
     str, bytes,
     ZIP64_VERSION,
-    ZIP_BZIP2, BZIP2_VERSION, 
+    ZIP_BZIP2, BZIP2_VERSION,
     ZIP_LZMA, LZMA_VERSION)
 
 from zipfile import (
-    ZIP_STORED, ZIP64_LIMIT, ZIP_FILECOUNT_LIMIT, ZIP_MAX_COMMENT, 
-    ZIP_DEFLATED, 
+    ZIP_STORED, ZIP64_LIMIT, ZIP_FILECOUNT_LIMIT, ZIP_MAX_COMMENT,
+    ZIP_DEFLATED,
     structCentralDir, structEndArchive64, structEndArchive, structEndArchive64Locator,
     stringCentralDir, stringEndArchive64, stringEndArchive, stringEndArchive64Locator,
     structFileHeader, stringFileHeader,
     zlib, crc32)
 
-stringDataDescriptor = b'PK\x07\x08' # magic number for data descriptor
+stringDataDescriptor = b'PK\x07\x08'  # magic number for data descriptor
 
 
 def _get_compressor(compress_type):
     if compress_type == ZIP_DEFLATED:
-        return zlib.compressobj(zlib.Z_DEFAULT_COMPRESSION,
-             zlib.DEFLATED, -15)
+        return zlib.compressobj(zlib.Z_DEFAULT_COMPRESSION, zlib.DEFLATED, -15)
     elif compress_type == ZIP_BZIP2:
         from zipfile import bz2
         return bz2.BZ2Compressor()
@@ -306,7 +305,7 @@ class ZipFile(zipfile.ZipFile):
             return
 
         try:
-            if self.mode in ('w', 'a') and self._didModify: # write ending records
+            if self.mode in ('w', 'a') and self._didModify:  # write ending records
                 count = 0
                 pos1 = self.fp.tell()
                 for zinfo in self.filelist:         # write central directory
