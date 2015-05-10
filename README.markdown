@@ -75,6 +75,12 @@ def GET(self):
 If the zlib module is available, zipstream.ZipFile can generate compressed zip
 archives.
 
+## Installation
+
+```
+pip install zipstream
+```
+
 ## Requirements
 
   * Python 2.6, 2.7, 3.2, 3.3, pypy
