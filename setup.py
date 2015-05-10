@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 from setuptools import setup, find_packages
-import zipstream
 
 
 setup(
     name='zipstream',
-    version=zipstream.__version__,
+    version='1.0.5',
     description='Zipfile generator',
     author='Allan Lei',
     author_email='allanlei@helveticode.com',
