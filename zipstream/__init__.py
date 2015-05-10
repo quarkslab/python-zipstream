@@ -170,8 +170,8 @@ class ZipFile(zipfile.ZipFile):
         self.paths_to_write = []
 
     def __iter__(self):
-        for args, kwargs in self.paths_to_write:
-            for data in self.__write(*args, **kwargs):
+        for kwargs in self.paths_to_write:
+            for data in self.__write(**kwargs):
                 yield data
         for data in self.__close():
             yield data
@@ -204,21 +204,30 @@ class ZipFile(zipfile.ZipFile):
         # TODO: Reflect python's Zipfile.write
         #   - if filename is file, write as file
         #   - if filename is directory, write an empty directory
-        self.paths_to_write.append(
-            ((filename, ), {'arcname': arcname, 'compress_type': compress_type}),
-        )
+        kwargs = {'filename': filename, 'arcname': arcname, 'compress_type': compress_type}
+        self.paths_to_write.append(kwargs)
 
-    def __write(self, filename, arcname=None, compress_type=None):
+    def write_iter(self, arcname, iterable, compress_type=None):
+        """Write the bytes iterable `iterable` to the archive under the name `arcname`."""
+        kwargs = {'arcname': arcname, 'iterable': iterable, 'compress_type': compress_type}
+        self.paths_to_write.append(kwargs)
+
+    def __write(self, filename=None, iterable=None, arcname=None, compress_type=None):
         """Put the bytes from filename into the archive under the name
-        arcname."""
+        `arcname`."""
         if not self.fp:
             raise RuntimeError(
                   "Attempt to write to ZIP archive that was already closed")
+        if (filename is None and iterable is None) or (filename is not None and iterable is not None):
+            raise ValueError("either (exclusively) filename or iterable shall be not None")
 
-        st = os.stat(filename)
-        isdir = stat.S_ISDIR(st.st_mode)
-        mtime = time.localtime(st.st_mtime)
-        date_time = mtime[0:6]
+        if filename:
+            st = os.stat(filename)
+            isdir = stat.S_ISDIR(st.st_mode)
+            mtime = time.localtime(st.st_mtime)
+            date_time = mtime[0:6]
+        else:
+            st, isdir, date_time = None, False, time.localtime()[0:6]
         # Create ZipInfo instance to store file information
         if arcname is None:
             arcname = filename
@@ -228,13 +237,16 @@ class ZipFile(zipfile.ZipFile):
         if isdir:
             arcname += '/'
         zinfo = ZipInfo(arcname, date_time)
-        zinfo.external_attr = (st[0] & 0xFFFF) << 16      # Unix attributes
+        if st:
+            zinfo.external_attr = (st[0] & 0xFFFF) << 16      # Unix attributes
+        else:
+            zinfo.external_attr = 0o600 << 16     # ?rw-------
         if compress_type is None:
             zinfo.compress_type = self.compression
         else:
             zinfo.compress_type = compress_type
 
-        zinfo.file_size = st.st_size
+        zinfo.file_size = 0
         zinfo.flag_bits = 0x00
         zinfo.flag_bits |= 0x08                 # ZIP flag bits, bit 3 indicates presence of data descriptor
         zinfo.header_offset = self.fp.tell()    # Start of header bytes
@@ -255,19 +267,29 @@ class ZipFile(zipfile.ZipFile):
             return
 
         cmpr = _get_compressor(zinfo.compress_type)
-        with open(filename, 'rb') as fp:
-            # Must overwrite CRC and sizes with correct data later
-            zinfo.CRC = CRC = 0
-            zinfo.compress_size = compress_size = 0
-            # Compressed size can be larger than uncompressed size
-            zip64 = self._allowZip64 and \
-                    zinfo.file_size * 1.05 > ZIP64_LIMIT
-            yield self.fp.write(zinfo.FileHeader(zip64))
-            file_size = 0
-            while 1:
-                buf = fp.read(1024 * 8)
-                if not buf:
-                    break
+
+        # Must overwrite CRC and sizes with correct data later
+        zinfo.CRC = CRC = 0
+        zinfo.compress_size = compress_size = 0
+        # Compressed size can be larger than uncompressed size
+        zip64 = self._allowZip64 and \
+                zinfo.file_size * 1.05 > ZIP64_LIMIT
+        yield self.fp.write(zinfo.FileHeader(zip64))
+        file_size = 0
+        if filename:
+            with open(filename, 'rb') as fp:
+                while 1:
+                    buf = fp.read(1024 * 8)
+                    if not buf:
+                        break
+                    file_size = file_size + len(buf)
+                    CRC = crc32(buf, CRC) & 0xffffffff
+                    if cmpr:
+                        buf = cmpr.compress(buf)
+                        compress_size = compress_size + len(buf)
+                    yield self.fp.write(buf)
+        else: # we have an iterable
+            for buf in iterable:
                 file_size = file_size + len(buf)
                 CRC = crc32(buf, CRC) & 0xffffffff
                 if cmpr:
