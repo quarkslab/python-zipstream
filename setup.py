@@ -9,7 +9,7 @@ setup(
     author='Allan Lei',
     author_email='allanlei@helveticode.com',
     url='https://github.com/allanlei/python-zipstream',
-    packages=find_packages(),
+    packages=find_packages(exclude=['tests']),
     keywords='zip streaming',
     test_suite='nose.collector',
     tests_require=['nose'],
