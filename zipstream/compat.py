@@ -66,3 +66,9 @@ try:
     from zipfile import ZIP_MAX_COMMENT
 except ImportError:
     ZIP_MAX_COMMENT = (1 << 16) - 1
+
+
+# Copy from io
+SEEK_SET = 0  # start of the stream (the default); offset should be zero or positive
+SEEK_CUR = 1  # current stream position; offset may be negative
+SEEK_END = 2  # end of the stream; offset is usually negative
