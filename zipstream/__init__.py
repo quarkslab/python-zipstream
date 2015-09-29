@@ -70,7 +70,7 @@ class PointerIO(object):
     def next(self):
         raise NotImplementedError()
 
-    def seek(self, offset, whence):
+    def seek(self, offset, whence=None):
         raise NotImplementedError()
 
     def tell(self):
