@@ -8,6 +8,9 @@ with zipstream.ZipFile(mode='w', compression=zipstream.ZIP_DEFLATED) as z:
     z.write('LICENSE')
     z.write('LICENSE', arcname='stuff/LICENSE')
 
+    with open('tests/sample.rtf', 'rb') as fp:
+        z.writestr('sample.rtf', fp.read())
+
     for root, directories, files in os.walk('zipstream'):
         for filename in files:
             path = os.path.join(root, filename)

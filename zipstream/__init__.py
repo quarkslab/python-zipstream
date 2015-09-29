@@ -6,7 +6,7 @@ Derived directly from zipfile.py
 """
 from __future__ import unicode_literals, print_function, with_statement
 
-__version__ = '1.1.2'
+__version__ = '1.1.3'
 
 import os
 import sys
@@ -219,6 +219,14 @@ class ZipFile(zipfile.ZipFile):
         """Write the bytes iterable `iterable` to the archive under the name `arcname`."""
         kwargs = {'arcname': arcname, 'iterable': iterable, 'compress_type': compress_type}
         self.paths_to_write.append(kwargs)
+
+    def writestr(self, arcname, data, compress_type=None):
+        """
+        Writes a str into ZipFile by wrapping data as a generator
+        """
+        def _iterable():
+            yield data
+        return self.write_iter(arcname, _iterable(), compress_type=compress_type)
 
     def __write(self, filename=None, iterable=None, arcname=None, compress_type=None):
         """Put the bytes from filename into the archive under the name
