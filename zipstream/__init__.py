@@ -6,7 +6,7 @@ Derived directly from zipfile.py
 """
 from __future__ import unicode_literals, print_function, with_statement
 
-__version__ = '1.1.1'
+__version__ = '1.1.2'
 
 import os
 import sys
@@ -19,7 +19,8 @@ from .compat import (
     str, bytes,
     ZIP64_VERSION,
     ZIP_BZIP2, BZIP2_VERSION,
-    ZIP_LZMA, LZMA_VERSION)
+    ZIP_LZMA, LZMA_VERSION,
+    SEEK_SET, SEEK_CUR, SEEK_END)
 
 from zipfile import (
     ZIP_STORED, ZIP64_LIMIT, ZIP_FILECOUNT_LIMIT, ZIP_MAX_COMMENT,
@@ -70,8 +71,16 @@ class PointerIO(object):
     def next(self):
         raise NotImplementedError()
 
-    def seek(self, offset, whence):
-        raise NotImplementedError()
+    # def seek(self, offset, whence=None):
+    #     if whence == SEEK_SET:
+    #         if offset < 0:
+    #             raise ValueError('negative seek value -1')
+    #         self.data_pointer = offset
+    #     elif whence == SEEK_CUR:
+    #         self.data_pointer = max(0, self.data_pointer + offset)
+    #     elif whence == SEEK_END:
+    #         self.data_pointer = max(0, offset)
+    #     return self.data_pointer
 
     def tell(self):
         return self.data_pointer
