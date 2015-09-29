@@ -220,6 +220,14 @@ class ZipFile(zipfile.ZipFile):
         kwargs = {'arcname': arcname, 'iterable': iterable, 'compress_type': compress_type}
         self.paths_to_write.append(kwargs)
 
+    def writestr(self, arcname, data, compress_type=None):
+        """
+        Writes a str into ZipFile by wrapping data as a generator
+        """
+        def _iterable():
+            yield data
+        return self.write_iter(arcname, _iterable(), compress_type=compress_type)
+
     def __write(self, filename=None, iterable=None, arcname=None, compress_type=None):
         """Put the bytes from filename into the archive under the name
         `arcname`."""
