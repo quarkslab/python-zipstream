@@ -71,16 +71,16 @@ class PointerIO(object):
     def next(self):
         raise NotImplementedError()
 
-    def seek(self, offset, whence=None):
-        if whence == SEEK_SET:
-            if offset < 0:
-                raise ValueError('negative seek value -1')
-            self.data_pointer = offset
-        elif whence == SEEK_CUR:
-            self.data_pointer = max(0, self.data_pointer + offset)
-        elif whence == SEEK_END:
-            self.data_pointer = max(0, offset)
-        return self.data_pointer
+    # def seek(self, offset, whence=None):
+    #     if whence == SEEK_SET:
+    #         if offset < 0:
+    #             raise ValueError('negative seek value -1')
+    #         self.data_pointer = offset
+    #     elif whence == SEEK_CUR:
+    #         self.data_pointer = max(0, self.data_pointer + offset)
+    #     elif whence == SEEK_END:
+    #         self.data_pointer = max(0, offset)
+    #     return self.data_pointer
 
     def tell(self):
         return self.data_pointer
