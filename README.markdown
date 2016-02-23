@@ -51,7 +51,7 @@ def iterable():
 
 z = zipstream.ZipFile()
 z.write('path/to/files', 'my_archive_files')
-z.write_iter(iterable(), 'my_archive_iter')
+z.write_iter('my_archive_iter', iterable())
 
 with open('zipfile.zip', 'wb') as f:
     for data in z:
