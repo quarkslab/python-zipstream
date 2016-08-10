@@ -35,7 +35,7 @@ def iterable():
         yield b'this is a byte string\x01\n'
 
 z = zipstream.ZipFile()
-z.write_iter(iterable(), 'my_archive_iter')
+z.write_iter('my_archive_iter', iterable())
 
 with open('zipfile.zip', 'wb') as f:
     for data in z:
