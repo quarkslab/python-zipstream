@@ -5,7 +5,7 @@
 [![Coverage Status](https://coveralls.io/repos/allanlei/python-zipstream/badge.png)](https://coveralls.io/r/allanlei/python-zipstream)
 
 zipstream.py is a zip archive generator based on python 3.3's zipfile.py. It was created to
-generate a zip file generator for streaming (ie web apps). This is beneficial for when you 
+generate a zip file generator for streaming (ie web apps). This is beneficial for when you
 want to provide a downloadable archive of a large collection of regular files, which would be infeasible to
 generate the archive prior to downloading or of a very large file that you do not want to store entirely on disk or on memory.
 
@@ -127,7 +127,7 @@ def zipball(request):
 	z = zipstream.ZipFile(mode='w', compression=ZIP_DEFLATED)
 	z.write('/path/to/file')
 
-    response = StreamingHttpResponse(z, mimetype='application/zip')
+    response = StreamingHttpResponse(z, content_type='application/zip')
     response['Content-Disposition'] = 'attachment; filename={}'.format('files.zip')
     return response
 ```
@@ -145,7 +145,7 @@ def GET(self):
 ```
 
 ## Running tests
-    
+
 With python version > 2.6, just run the following command: `python -m unittest discover`
 
 Alternatively, you can use `nose`.
