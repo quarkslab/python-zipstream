@@ -20,7 +20,8 @@ from .compat import (
     ZIP64_VERSION,
     ZIP_BZIP2, BZIP2_VERSION,
     ZIP_LZMA, LZMA_VERSION,
-    SEEK_SET, SEEK_CUR, SEEK_END)
+    SEEK_SET, SEEK_CUR, SEEK_END,
+    zip_encrypt)
 
 from zipfile import (
     ZIP_STORED, ZIP64_LIMIT, ZIP_FILECOUNT_LIMIT, ZIP_MAX_COMMENT,
@@ -31,6 +32,8 @@ from zipfile import (
     zlib, crc32)
 
 stringDataDescriptor = b'PK\x07\x08'  # magic number for data descriptor
+
+randomFunc = os.urandom
 
 
 def _get_compressor(compress_type):
@@ -165,8 +168,11 @@ class ZipInfo(zipfile.ZipInfo):
 
 
 class ZipFile(zipfile.ZipFile):
-    def __init__(self, fileobj=None, mode='w', compression=ZIP_STORED, allowZip64=False):
-        """Open the ZIP file with mode write "w"."""
+    def __init__(self, fileobj=None, mode='w', compression=ZIP_STORED,
+                 allowZip64=False, pwd=None):
+        """Open the ZIP file with mode write "w".
+           pwd: password bytes - will use weak-agorithm password protection
+        """
         if mode not in ('w', ):
             raise RuntimeError('zipstream.ZipFile() requires mode "w"')
         if fileobj is None:
@@ -174,8 +180,9 @@ class ZipFile(zipfile.ZipFile):
 
         self._comment = b''
         zipfile.ZipFile.__init__(self, fileobj, mode=mode, compression=compression, allowZip64=allowZip64)
-        # TODO: Refractor to write queue with args + kwargs matching write()
+        # TODO: Refactor to write queue with args + kwargs matching write()
         self.paths_to_write = []
+        self.pwd = pwd
 
     def __iter__(self):
         for kwargs in self.paths_to_write:
@@ -228,7 +235,8 @@ class ZipFile(zipfile.ZipFile):
             yield data
         return self.write_iter(arcname, _iterable(), compress_type=compress_type)
 
-    def __write(self, filename=None, iterable=None, arcname=None, compress_type=None):
+    def __write(self, filename=None, iterable=None, arcname=None,
+                compress_type=None, pwd=None):
         """Put the bytes from filename into the archive under the name
         `arcname`."""
         if not self.fp:
@@ -267,6 +275,9 @@ class ZipFile(zipfile.ZipFile):
         else:
             zinfo.file_size = 0
         zinfo.flag_bits = 0x00
+        pwd = pwd or self.pwd
+        if pwd:
+            zinfo.flag_bits |= 0x1  # set encrypted
         zinfo.flag_bits |= 0x08                 # ZIP flag bits, bit 3 indicates presence of data descriptor
         zinfo.header_offset = self.fp.tell()    # Start of header bytes
         if zinfo.compress_type == ZIP_LZMA:
@@ -295,6 +306,17 @@ class ZipFile(zipfile.ZipFile):
                 zinfo.file_size * 1.05 > ZIP64_LIMIT
         yield self.fp.write(zinfo.FileHeader(zip64))
         file_size = 0
+        if pwd:
+            encrypt = zip_encrypt(pwd)
+            zinfo._raw_time = (
+                zinfo.date_time[3] << 11
+                | zinfo.date_time[4] << 5
+                | (zinfo.date_time[5] // 2))
+            check_byte = (zinfo._raw_time >> 8) & 0xff
+            encryption_header = randomFunc(11) + struct.pack(b"B", check_byte)
+            yield self.fp.write(encrypt(encryption_header))
+        else:
+            encrypt = lambda x: x
         if filename:
             with open(filename, 'rb') as fp:
                 while 1:
@@ -306,7 +328,7 @@ class ZipFile(zipfile.ZipFile):
                     if cmpr:
                         buf = cmpr.compress(buf)
                         compress_size = compress_size + len(buf)
-                    yield self.fp.write(buf)
+                    yield self.fp.write(encrypt(buf))
         else: # we have an iterable
             for buf in iterable:
                 file_size = file_size + len(buf)
@@ -314,11 +336,11 @@ class ZipFile(zipfile.ZipFile):
                 if cmpr:
                     buf = cmpr.compress(buf)
                     compress_size = compress_size + len(buf)
-                yield self.fp.write(buf)
+                yield self.fp.write(encrypt(buf))
         if cmpr:
             buf = cmpr.flush()
             compress_size = compress_size + len(buf)
-            yield self.fp.write(buf)
+            yield self.fp.write(encrypt(buf))
             zinfo.compress_size = compress_size
         else:
             zinfo.compress_size = file_size
@@ -332,11 +354,20 @@ class ZipFile(zipfile.ZipFile):
 
         # Seek backwards and write file header (which will now include
         # correct CRC and file sizes)
-        # position = self.fp.tell()       # Preserve current position in file
-        # self.fp.seek(zinfo.header_offset, 0)
-        # self.fp.write(zinfo.FileHeader(zip64))
-        # self.fp.seek(position, 0)
-        yield self.fp.write(zinfo.DataDescriptor())
+        if pwd:
+            # Write CRC and file sizes after the file data
+            zinfo.compress_size += 12
+            fmt = b'<LQQ' if zip64 else b'<LLL'
+            yield self.fp.write(struct.pack(
+                fmt, zinfo.CRC, zinfo.compress_size, zinfo.file_size))
+        else:
+            # Seek backwards and write file header (which will now include
+            # correct CRC and file sizes)
+            # position = self.fp.tell()     # Preserve current position in file
+            # self.fp.seek(zinfo.header_offset, 0)
+            # self.fp.write(zinfo.FileHeader(zip64))
+            # self.fp.seek(position, 0)
+            yield self.fp.write(zinfo.DataDescriptor())
         self.filelist.append(zinfo)
         self.NameToInfo[zinfo.filename] = zinfo
 

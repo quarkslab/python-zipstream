@@ -22,20 +22,30 @@ PY3 = sys.version_info[0] == 3
 # ---------
 
 if PY2:
+    from .zipencrypt2 import _ZipEncrypter
+
     builtin_str = str
     bytes = str
     str = unicode
     basestring = basestring
     numeric_types = (int, long, float)
 
+    def zip_encrypt(pwd):
+        ze = _ZipEncrypter(pwd)
+        return lambda x: b"".join(map(ze, x))
 
 elif PY3:
+    from .zipencrypt3 import _ZipEncrypter
+
     builtin_str = str
     str = str
     bytes = bytes
     basestring = (str, bytes)
     numeric_types = (int, float)
 
+    def zip_encrypt(pwd):
+        ze = _ZipEncrypter(pwd)
+        return lambda x: bytes(map(ze, x))
 
 try:
     from zipfile import ZIP64_VERSION
