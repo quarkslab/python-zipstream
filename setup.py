@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='zipstream',
-    version='1.1.4',
+    version='1.1.5',
     description='Zipfile generator',
     author='Allan Lei',
     author_email='allanlei@helveticode.com',
