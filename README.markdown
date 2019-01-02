@@ -1,10 +1,20 @@
 
-# python-zipstream
+# Enczipstream
 
-[![Build Status](https://travis-ci.org/allanlei/python-zipstream.png?branch=master)](https://travis-ci.org/allanlei/python-zipstream)
-[![Coverage Status](https://coveralls.io/repos/allanlei/python-zipstream/badge.png)](https://coveralls.io/r/allanlei/python-zipstream)
+[![Build Status](https://travis-ci.org/ch0k0bn/python-zipstream.png?branch=master)](https://travis-ci.org/ch0k0bn/python-zipstream)
 
-zipstream.py is a zip archive generator based on python 3.3's zipfile.py. It was created to
+## Original Authors and Weak algorithm warning
+
+enczipstream is the merge between allanlei's [python-zipstream](https://github.com/allanlei/python-zipstream) and
+devthat's [zipencrypt](https://github.com/devthat/zipencrypt/tree/master/zipencrypt) allowing a user to stream password
+protected archive (with the weak algorithm)
+
+WEAK ALGORITHM IS NOT SECURE
+
+## Readme
+
+
+enczipstream.py is a zip archive generator based on python 3.3's zipfile.py. It was created to
 generate a zip file generator for streaming (ie web apps). This is beneficial for when you
 want to provide a downloadable archive of a large collection of regular files, which would be infeasible to
 generate the archive prior to downloading or of a very large file that you do not want to store entirely on disk or on memory.
@@ -14,9 +24,9 @@ the zip archive. For example, the following code snippet would write a zip
 archive containing files from 'path' to a normal file:
 
 ```python
-import zipstream
+import enczipstream
 
-z = zipstream.ZipFile()
+z = enczipstream.ZipFile()
 z.write('path/to/files')
 
 with open('zipfile.zip', 'wb') as f:
@@ -24,7 +34,7 @@ with open('zipfile.zip', 'wb') as f:
         f.write(data)
 ```
 
-zipstream also allows to take as input a byte string iterable and to generate
+enczipstream also allows to take as input a byte string iterable and to generate
 the archive as an iterator.
 This avoids storing large files on disk or in memory.
 To do so you could use something like this snippet:
@@ -34,7 +44,7 @@ def iterable():
     for _ in xrange(10):
         yield b'this is a byte string\x01\n'
 
-z = zipstream.ZipFile()
+z = enczipstream.ZipFile()
 z.write_iter('my_archive_iter', iterable())
 
 with open('zipfile.zip', 'wb') as f:
@@ -49,7 +59,7 @@ def iterable():
     for _ in xrange(10):
         yield b'this is a byte string\x01\n'
 
-z = zipstream.ZipFile()
+z = enczipstream.ZipFile()
 z.write('path/to/files', 'my_archive_files')
 z.write_iter('my_archive_iter', iterable())
 
@@ -69,16 +79,16 @@ def GET(self):
     web.header('Content-type' , 'application/zip')
     web.header('Content-Disposition', 'attachment; filename="%s"' % (
         zip_filename,))
-    return zipstream.ZipFile(path)
+    return enczipstream.ZipFile(path)
 ```
 
-If the zlib module is available, zipstream.ZipFile can generate compressed zip
+If the zlib module is available, enczipstream.ZipFile can generate compressed zip
 archives.
 
 ## Installation
 
 ```
-pip install zipstream
+pip install enczipstream
 ```
 
 ## Requirements
@@ -95,7 +105,7 @@ from flask import Response
 @app.route('/package.zip', methods=['GET'], endpoint='zipball')
 def zipball():
     def generator():
-        z = zipstream.ZipFile(mode='w', compression=ZIP_DEFLATED)
+        z = enczipstream.ZipFile(mode='w', compression=ZIP_DEFLATED)
 
         z.write('/path/to/file')
 
@@ -110,7 +120,7 @@ def zipball():
 
 @app.route('/package.zip', methods=['GET'], endpoint='zipball')
 def zipball():
-    z = zipstream.ZipFile(mode='w', compression=ZIP_DEFLATED)
+    z = enczipstream.ZipFile(mode='w', compression=ZIP_DEFLATED)
     z.write('/path/to/file')
 
     response = Response(z, mimetype='application/zip')
@@ -124,7 +134,7 @@ def zipball():
 from django.http import StreamingHttpResponse
 
 def zipball(request):
-    z = zipstream.ZipFile(mode='w', compression=ZIP_DEFLATED)
+    z = enczipstream.ZipFile(mode='w', compression=ZIP_DEFLATED)
     z.write('/path/to/file')
 
     response = StreamingHttpResponse(z, content_type='application/zip')
@@ -141,7 +151,20 @@ def GET(self):
     web.header('Content-type' , 'application/zip')
     web.header('Content-Disposition', 'attachment; filename="%s"' % (
         zip_filename,))
-    return zipstream.ZipFile(path)
+    return enczipstream.ZipFile(path)
+```
+
+### password example
+
+```python
+def iterable():
+    for _ in xrange(10):
+        yield b'this is a byte string\x01\n'
+
+z = enczipstream.ZipFile(mode='w',
+                         compression=enczipstream.ZIP_DEFLATED,
+                         pwd=b"correct horse battery staple")
+z.write_iter('my_archive_iter', iterable())
 ```
 
 ## Running tests

@@ -4,7 +4,7 @@ from __future__ import unicode_literals, print_function
 import os
 import tempfile
 import unittest
-import zipstream
+import enczipstream
 import zipfile
 
 
@@ -30,22 +30,22 @@ class ZipStreamTestCase(unittest.TestCase):
             os.remove(fileobj.name)
 
     def test_init_no_args(self):
-        zipstream.ZipFile()
+        enczipstream.ZipFile()
 
     def test_init_mode(self):
         try:
-            zipstream.ZipFile(mode='w')
+            enczipstream.ZipFile(mode='w')
         except Exception as err:
             self.fail(err)
 
         for mode in ['wb', 'r', 'rb', 'a', 'ab']:
-            self.assertRaises(Exception, zipstream.ZipFile, mode=mode)
+            self.assertRaises(Exception, enczipstream.ZipFile, mode=mode)
 
         for mode in ['wb', 'r', 'rb', 'a', 'ab']:
-            self.assertRaises(Exception, zipstream.ZipFile, mode=mode + '+')
+            self.assertRaises(Exception, enczipstream.ZipFile, mode=mode + '+')
 
     def test_write_file(self):
-        z = zipstream.ZipFile(mode='w')
+        z = enczipstream.ZipFile(mode='w')
         for fileobj in self.fileobjs:
             z.write(fileobj.name)
 
@@ -60,7 +60,7 @@ class ZipStreamTestCase(unittest.TestCase):
         os.remove(f.name)
 
     def test_write_file_pwd(self):
-        z = zipstream.ZipFile(mode='w', pwd=self.password)
+        z = enczipstream.ZipFile(mode='w', pwd=self.password)
         for fileobj in self.fileobjs:
             z.write(fileobj.name)
 
@@ -76,8 +76,8 @@ class ZipStreamTestCase(unittest.TestCase):
         os.remove(f.name)
 
     def test_write_file_pwd_compress(self):
-        z = zipstream.ZipFile(mode='w',
-                              compression=zipstream.ZIP_DEFLATED,
+        z = enczipstream.ZipFile(mode='w',
+                              compression=enczipstream.ZIP_DEFLATED,
                               pwd=self.password)
         for fileobj in self.fileobjs:
             z.write(fileobj.name)
@@ -94,7 +94,7 @@ class ZipStreamTestCase(unittest.TestCase):
         os.remove(f.name)
 
     def test_write_file_wrong_pwd(self):
-        z = zipstream.ZipFile(mode='w', pwd=self.password)
+        z = enczipstream.ZipFile(mode='w', pwd=self.password)
         for fileobj in self.fileobjs:
             z.write(fileobj.name)
 
@@ -110,11 +110,11 @@ class ZipStreamTestCase(unittest.TestCase):
         os.remove(f.name)
 
     def test_write_iterable(self):
-        z = zipstream.ZipFile(mode='w')
+        z = enczipstream.ZipFile(mode='w')
 
         def string_generator():
             for _ in range(10):
-                yield b'zipstream\x01\n'
+                yield b'enczipstream\x01\n'
         data = [string_generator(), string_generator()]
         for i, d in enumerate(data):
             z.write_iter(iterable=d, arcname='data_{0}'.format(i))
@@ -130,11 +130,11 @@ class ZipStreamTestCase(unittest.TestCase):
         os.remove(f.name)
 
     def test_write_iterable_pwd(self):
-        z = zipstream.ZipFile(mode='w', pwd=self.password)
+        z = enczipstream.ZipFile(mode='w', pwd=self.password)
 
         def string_generator():
             for _ in range(10):
-                yield b'zipstream\x01\n'
+                yield b'enczipstream\x01\n'
         data = [string_generator(), string_generator()]
         for i, d in enumerate(data):
             z.write_iter(iterable=d, arcname='data_{0}'.format(i))
@@ -151,13 +151,13 @@ class ZipStreamTestCase(unittest.TestCase):
         os.remove(f.name)
 
     def test_write_iterable_pwd_compress(self):
-        z = zipstream.ZipFile(mode='w',
-                              compression=zipstream.ZIP_DEFLATED,
+        z = enczipstream.ZipFile(mode='w',
+                              compression=enczipstream.ZIP_DEFLATED,
                               pwd=self.password)
 
         def string_generator():
             for _ in range(10):
-                yield b'zipstream\x01\n'
+                yield b'enczipstream\x01\n'
         data = [string_generator(), string_generator()]
         for i, d in enumerate(data):
             z.write_iter(iterable=d, arcname='data_{0}'.format(i))
@@ -174,7 +174,7 @@ class ZipStreamTestCase(unittest.TestCase):
         os.remove(f.name)
 
     def test_writestr(self):
-        z = zipstream.ZipFile(mode='w')
+        z = enczipstream.ZipFile(mode='w')
 
         with open(SAMPLE_FILE_RTF, 'rb') as fp:
             z.writestr('sample.rtf', fp.read())
@@ -190,7 +190,7 @@ class ZipStreamTestCase(unittest.TestCase):
         os.remove(f.name)
 
     def test_writestr_pwd(self):
-        z = zipstream.ZipFile(mode='w', pwd=self.password)
+        z = enczipstream.ZipFile(mode='w', pwd=self.password)
 
         with open(SAMPLE_FILE_RTF, 'rb') as fp:
             z.writestr('sample.rtf', fp.read())
@@ -207,7 +207,7 @@ class ZipStreamTestCase(unittest.TestCase):
         os.remove(f.name)
 
     def test_writestr_wrong_pwd(self):
-        z = zipstream.ZipFile(mode='w', pwd=self.password)
+        z = enczipstream.ZipFile(mode='w', pwd=self.password)
 
         with open(SAMPLE_FILE_RTF, 'rb') as fp:
             z.writestr('sample.rtf', fp.read())
@@ -224,8 +224,8 @@ class ZipStreamTestCase(unittest.TestCase):
         os.remove(f.name)
 
     def test_writestr_pwd_compress(self):
-        z = zipstream.ZipFile(mode='w',
-                              compression=zipstream.ZIP_DEFLATED,
+        z = enczipstream.ZipFile(mode='w',
+                              compression=enczipstream.ZIP_DEFLATED,
                               pwd=self.password)
 
         with open(SAMPLE_FILE_RTF, 'rb') as fp:
@@ -243,11 +243,11 @@ class ZipStreamTestCase(unittest.TestCase):
         os.remove(f.name)
 
     def test_write_iterable_no_archive(self):
-        z = zipstream.ZipFile(mode='w')
+        z = enczipstream.ZipFile(mode='w')
         self.assertRaises(TypeError, z.write_iter, iterable=range(10))
 
     def test_write_iterable_wrong_password(self):
-        z = zipstream.ZipFile(mode='w', pwd=self.password)
+        z = enczipstream.ZipFile(mode='w', pwd=self.password)
 
         def string_generator():
             for _ in range(10):
